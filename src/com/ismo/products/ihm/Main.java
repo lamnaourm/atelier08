@@ -111,8 +111,10 @@ public class Main extends JFrame {
 		scrollPane.setViewportView(listprod);
 		listprod.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent arg0) {
-				position = listprod.getSelectedIndex();
-				remplirTextFields();
+				if(model.size()>0 && listprod.getSelectedIndex()>=0) {
+					position = listprod.getSelectedIndex();
+					remplirTextFields();
+				}
 			}
 		});
 		listprod.setModel(model);
@@ -137,6 +139,12 @@ public class Main extends JFrame {
 		panel.add(btnFirst);
 		
 		button = new JButton("");
+		button.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String ch = txt_find.getText();
+				filterProduits(ch);
+			}
+		});
 		button.setIcon(new ImageIcon(Main.class.getResource("/images/icons8_Google_Web_Search_20px.png")));
 		button.setBounds(190, 11, 55, 35);
 		panel.add(button);
@@ -286,6 +294,8 @@ public class Main extends JFrame {
 	}
 
 	void RemplirListProduit() {
+		model.clear();
+		
 		for(Produit p:products)
 			model.addElement(String.format("P%05d - %s", p.getCode(),p.getLibelle()));
 	}
@@ -304,5 +314,22 @@ public class Main extends JFrame {
 			rdElectromenager.setSelected(true);
 		} else 
 			rdLegumes.setSelected(true); 
+	}
+	
+	void filterProduits(String ch) {
+		products = (ArrayList<Produit>) metier.getAll();
+		
+		if(!ch.trim().isEmpty())
+			for(int i=0;i<products.size();i++)
+				if(!products.get(i).getLibelle().contains(txt_find.getText())) {
+					products.remove(i);
+					i--;
+				}
+		
+		RemplirListProduit();
+		if(products.size()!=0) {
+			position = 0;
+			listprod.setSelectedIndex(position);
+		}
 	}
 }
