@@ -16,6 +16,7 @@ import java.awt.Color;
 import javax.swing.JTextField;
 import javax.swing.JButton;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import java.awt.Font;
@@ -62,6 +63,7 @@ public class Main extends JFrame {
 	ArrayList<Produit> products;
 	int position=0;
 	private JScrollPane scrollPane;
+	Mode mode = Mode.NORMAL;
 
 	/**
 	 * Launch the application.
@@ -239,12 +241,24 @@ public class Main extends JFrame {
 		panel_1.add(rdElectromenager);
 		
 		btnAjouter = new JButton("Ajouter");
+		btnAjouter.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				activeDesactiveControls(true);
+				mode = Mode.ADD;
+			}
+		});
 		btnAjouter.setHorizontalAlignment(SwingConstants.LEADING);
 		btnAjouter.setIcon(new ImageIcon(Main.class.getResource("/images/icons8_Add_New_20px.png")));
 		btnAjouter.setBounds(347, 62, 126, 33);
 		panel_1.add(btnAjouter);
 		
 		btnModifier = new JButton("Modifier");
+		btnModifier.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				activeDesactiveControls(true);
+				mode = Mode.UPDATE;
+			}
+		});
 		btnModifier.setHorizontalAlignment(SwingConstants.LEADING);
 		btnModifier.setIcon(new ImageIcon(Main.class.getResource("/images/icons8_Edit_Image_20px.png")));
 		btnModifier.setBounds(347, 98, 126, 31);
@@ -268,19 +282,75 @@ public class Main extends JFrame {
 		btnFermer.setBounds(347, 210, 126, 33);
 		panel_1.add(btnFermer);
 		
+		
 		btnEnregistrer = new JButton("Enregistrer");
 		btnEnregistrer.setIcon(new ImageIcon(Main.class.getResource("/images/icons8_Save_20px.png")));
 		btnEnregistrer.setBounds(20, 322, 125, 33);
+		btnEnregistrer.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Produit p = new Produit();
+				p.setCode(Integer.valueOf(txt_code.getText()));
+				p.setLibelle(txt_lib.getText());
+				p.setPrix_achat(Double.parseDouble(txt_achat.getText()));
+				p.setPrix_vente(Double.parseDouble(txt_vente.getText()));
+				String famille = "";
+				if(rdElectromenager.isSelected())
+					famille = rdElectromenager.getText();
+				else if(rdFruit.isSelected())
+					famille = rdFruit.getText();
+				else if(rdLegumes.isSelected())
+					famille = rdLegumes.getText();
+				else famille = rdEpicerie.getText();
+				p.setFamille(famille);
+				
+				switch (mode) {
+				case ADD: 
+					metier.save(p); 
+					JOptionPane.showMessageDialog(null, "Produit ajoute avec succes");
+					break;
+				case UPDATE: 
+					metier.update(p); 
+					JOptionPane.showMessageDialog(null, "Produit modifier avec succes");
+					break;
+				}
+				
+				mode = Mode.NORMAL;
+				activeDesactiveControls(false);
+				txt_find.setText("");
+				filterProduits("");
+			}
+		});
 		panel_1.add(btnEnregistrer);
 		
 		btnAnnuler = new JButton("Annuler");
 		btnAnnuler.setIcon(new ImageIcon(Main.class.getResource("/images/icons8_Cancel_20px.png")));
 		btnAnnuler.setBounds(148, 322, 120, 33);
+		btnAnnuler.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				activeDesactiveControls(false);
+				txt_find.setText("");
+				filterProduits("");
+			}
+		});
 		panel_1.add(btnAnnuler);
 		
 		btnInitialiser = new JButton("Initailiser");
 		btnInitialiser.setIcon(new ImageIcon(Main.class.getResource("/images/icons8_Initiate_Money_Transfer_20px.png")));
 		btnInitialiser.setBounds(273, 322, 113, 33);
+		btnInitialiser.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				txt_lib.setText("");
+				txt_achat.setText("");
+				txt_vente.setText("");
+				txt_lib.requestFocus();
+			}
+		});
 		panel_1.add(btnInitialiser);
 		
 		
@@ -291,6 +361,8 @@ public class Main extends JFrame {
 			position = 0;
 			remplirTextFields();
 		}
+		
+		activeDesactiveControls(false);
 	}
 
 	void RemplirListProduit() {
@@ -332,4 +404,36 @@ public class Main extends JFrame {
 			listprod.setSelectedIndex(position);
 		}
 	}
+	
+	void activeDesactiveControls(boolean etat) {
+		txt_code.setEditable(false);
+		txt_lib.setEditable(etat);
+		txt_achat.setEditable(etat);
+		txt_vente.setEditable(etat);
+		rdElectromenager.setEnabled(etat);
+		rdFruit.setEnabled(etat);
+		rdEpicerie.setEnabled(etat);
+		rdLegumes.setEnabled(etat);
+		btnEnregistrer.setEnabled(etat);
+		btnAnnuler.setEnabled(etat);
+		btnInitialiser.setEnabled(etat);
+		btnAjouter.setEnabled(!etat);
+		btnModifier.setEnabled(!etat);
+		btnSupprimer.setEnabled(!etat);
+		listprod.setEnabled(!etat);
+		btnLast.setEnabled(!etat);
+		btnFirst.setEnabled(!etat);
+		button.setEnabled(!etat);
+		txt_find.setEditable(!etat);
+		btnRechercher.setEnabled(!etat);
+	}
+	
+	
+}
+
+
+enum Mode {
+	ADD,
+	UPDATE,
+	NORMAL
 }
