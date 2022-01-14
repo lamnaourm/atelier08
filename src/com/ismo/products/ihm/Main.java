@@ -7,6 +7,11 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+
+import com.ismo.prodcuts.metier.IMetier;
+import com.ismo.prodcuts.metier.MetierProduit;
+import com.ismo.prodcuts.model.Produit;
+
 import java.awt.Color;
 import javax.swing.JTextField;
 import javax.swing.JButton;
@@ -14,17 +19,25 @@ import javax.swing.JList;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import java.awt.Font;
+import java.util.ArrayList;
+
 import javax.swing.JRadioButton;
 import javax.swing.ButtonGroup;
+import javax.swing.DefaultListModel;
 import javax.swing.SwingConstants;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.ListSelectionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import javax.swing.JScrollPane;
 
 public class Main extends JFrame {
 
 	private JPanel contentPane;
-	private JTextField textField_1;
-	private JTextField textField_2;
-	private JTextField textField_3;
-	private JTextField textField_4;
+	private JTextField txt_code;
+	private JTextField txt_lib;
+	private JTextField txt_achat;
+	private JTextField txt_vente;
 	private final ButtonGroup buttonGroup = new ButtonGroup();
 	private JButton btnAjouter;
 	private JButton btnModifier;
@@ -33,16 +46,22 @@ public class Main extends JFrame {
 	private JButton btnFermer;
 	private JButton btnAnnuler;
 	private JButton btnEnregistrer;
-	private JButton btnFermer_1;
+	private JButton btnInitialiser;
 	private JButton button;
-	private JTextField textField;
-	private JList list;
-	private JButton btnNewButton;
-	private JButton btnNewButton_1;
-	private JRadioButton rdbtnEpicerie;
-	private JRadioButton rdbtnLegumes;
-	private JRadioButton rdbtnFruit;
-	private JRadioButton rdbtnNewRadioButton;
+	private JTextField txt_find;
+	private JList listprod;
+	private JButton btnFirst;
+	private JButton btnLast;
+	private JRadioButton rdEpicerie;
+	private JRadioButton rdLegumes;
+	private JRadioButton rdFruit;
+	private JRadioButton rdElectromenager;
+	
+	DefaultListModel<String> model = new DefaultListModel<>();
+	IMetier<Produit> metier = new MetierProduit();
+	ArrayList<Produit> products;
+	int position=0;
+	private JScrollPane scrollPane;
 
 	/**
 	 * Launch the application.
@@ -79,30 +98,66 @@ public class Main extends JFrame {
 		contentPane.add(panel);
 		panel.setLayout(null);
 		
-		textField = new JTextField();
-		textField.setBounds(10, 11, 167, 35);
-		panel.add(textField);
-		textField.setColumns(10);
+		txt_find = new JTextField();
+		txt_find.setBounds(10, 11, 167, 35);
+		panel.add(txt_find);
+		txt_find.setColumns(10);
 		
-		list = new JList();
-		list.setBorder(new LineBorder(new Color(0, 0, 0)));
-		list.setBounds(10, 65, 235, 262);
-		panel.add(list);
+		scrollPane = new JScrollPane();
+		scrollPane.setBounds(10, 65, 235, 262);
+		panel.add(scrollPane);
 		
-		btnNewButton = new JButton("");
-		btnNewButton.setIcon(new ImageIcon(Main.class.getResource("/images/icons8_First_20px.png")));
-		btnNewButton.setBounds(10, 338, 89, 35);
-		panel.add(btnNewButton);
+		listprod = new JList();
+		scrollPane.setViewportView(listprod);
+		listprod.addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent arg0) {
+				position = listprod.getSelectedIndex();
+				remplirTextFields();
+			}
+		});
+		listprod.setModel(model);
+		listprod.setBorder(new LineBorder(new Color(0, 0, 0)));
+		
+		btnFirst = new JButton("");
+		btnFirst.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int i = listprod.getSelectedIndex();
+				
+				if(i==0)
+					i=products.size()-1;
+				else 
+					i--;
+				
+				listprod.setSelectedIndex(i);
+				remplirTextFields();
+			}
+		});
+		btnFirst.setIcon(new ImageIcon(Main.class.getResource("/images/icons8_First_20px.png")));
+		btnFirst.setBounds(10, 338, 89, 35);
+		panel.add(btnFirst);
 		
 		button = new JButton("");
 		button.setIcon(new ImageIcon(Main.class.getResource("/images/icons8_Google_Web_Search_20px.png")));
 		button.setBounds(190, 11, 55, 35);
 		panel.add(button);
 		
-		btnNewButton_1 = new JButton("");
-		btnNewButton_1.setIcon(new ImageIcon(Main.class.getResource("/images/icons8_Last_20px_1.png")));
-		btnNewButton_1.setBounds(156, 338, 89, 35);
-		panel.add(btnNewButton_1);
+		btnLast = new JButton("");
+		btnLast.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				int i = listprod.getSelectedIndex();
+				
+				if(i==products.size()-1)
+					i=0;
+				else 
+					i++;
+				
+				listprod.setSelectedIndex(i);
+				remplirTextFields();
+			}
+		});
+		btnLast.setIcon(new ImageIcon(Main.class.getResource("/images/icons8_Last_20px_1.png")));
+		btnLast.setBounds(156, 338, 89, 35);
+		panel.add(btnLast);
 		
 		JPanel panel_1 = new JPanel();
 		panel_1.setBorder(new LineBorder(new Color(0, 0, 0), 3));
@@ -117,33 +172,33 @@ public class Main extends JFrame {
 		
 		JLabel lblDes = new JLabel("Libelle produit : ");
 		lblDes.setFont(new Font("Tahoma", Font.BOLD, 11));
-		lblDes.setBounds(10, 102, 96, 14);
+		lblDes.setBounds(10, 112, 96, 14);
 		panel_1.add(lblDes);
 		
-		textField_1 = new JTextField();
-		textField_1.setBounds(116, 59, 86, 20);
-		panel_1.add(textField_1);
-		textField_1.setColumns(10);
+		txt_code = new JTextField();
+		txt_code.setBounds(116, 59, 86, 20);
+		panel_1.add(txt_code);
+		txt_code.setColumns(10);
 		
-		textField_2 = new JTextField();
-		textField_2.setColumns(10);
-		textField_2.setBounds(116, 99, 207, 20);
-		panel_1.add(textField_2);
+		txt_lib = new JTextField();
+		txt_lib.setColumns(10);
+		txt_lib.setBounds(116, 109, 207, 20);
+		panel_1.add(txt_lib);
 		
-		textField_3 = new JTextField();
-		textField_3.setColumns(10);
-		textField_3.setBounds(116, 152, 86, 20);
-		panel_1.add(textField_3);
+		txt_achat = new JTextField();
+		txt_achat.setColumns(10);
+		txt_achat.setBounds(116, 152, 86, 20);
+		panel_1.add(txt_achat);
 		
 		JLabel lblPrixAchat = new JLabel("Prix achat :");
 		lblPrixAchat.setFont(new Font("Tahoma", Font.BOLD, 11));
 		lblPrixAchat.setBounds(10, 155, 96, 14);
 		panel_1.add(lblPrixAchat);
 		
-		textField_4 = new JTextField();
-		textField_4.setColumns(10);
-		textField_4.setBounds(116, 204, 86, 20);
-		panel_1.add(textField_4);
+		txt_vente = new JTextField();
+		txt_vente.setColumns(10);
+		txt_vente.setBounds(116, 204, 86, 20);
+		panel_1.add(txt_vente);
 		
 		JLabel lblPrixVente = new JLabel("Prix vente :");
 		lblPrixVente.setFont(new Font("Tahoma", Font.BOLD, 11));
@@ -155,25 +210,25 @@ public class Main extends JFrame {
 		lblFamilleProduit.setBounds(10, 261, 113, 14);
 		panel_1.add(lblFamilleProduit);
 		
-		rdbtnEpicerie = new JRadioButton("Epicerie");
-		buttonGroup.add(rdbtnEpicerie);
-		rdbtnEpicerie.setBounds(22, 282, 84, 23);
-		panel_1.add(rdbtnEpicerie);
+		rdEpicerie = new JRadioButton("Epicerie");
+		buttonGroup.add(rdEpicerie);
+		rdEpicerie.setBounds(22, 282, 84, 23);
+		panel_1.add(rdEpicerie);
 		
-		rdbtnLegumes = new JRadioButton("Legumes");
-		buttonGroup.add(rdbtnLegumes);
-		rdbtnLegumes.setBounds(108, 282, 86, 23);
-		panel_1.add(rdbtnLegumes);
+		rdLegumes = new JRadioButton("Legumes");
+		buttonGroup.add(rdLegumes);
+		rdLegumes.setBounds(108, 282, 86, 23);
+		panel_1.add(rdLegumes);
 		
-		rdbtnFruit = new JRadioButton("Fruit");
-		buttonGroup.add(rdbtnFruit);
-		rdbtnFruit.setBounds(196, 282, 55, 23);
-		panel_1.add(rdbtnFruit);
+		rdFruit = new JRadioButton("Fruit");
+		buttonGroup.add(rdFruit);
+		rdFruit.setBounds(196, 282, 55, 23);
+		panel_1.add(rdFruit);
 		
-		rdbtnNewRadioButton = new JRadioButton("Electromenager");
-		buttonGroup.add(rdbtnNewRadioButton);
-		rdbtnNewRadioButton.setBounds(268, 282, 124, 23);
-		panel_1.add(rdbtnNewRadioButton);
+		rdElectromenager = new JRadioButton("Electromenager");
+		buttonGroup.add(rdElectromenager);
+		rdElectromenager.setBounds(268, 282, 124, 23);
+		panel_1.add(rdElectromenager);
 		
 		btnAjouter = new JButton("Ajouter");
 		btnAjouter.setHorizontalAlignment(SwingConstants.LEADING);
@@ -215,10 +270,39 @@ public class Main extends JFrame {
 		btnAnnuler.setBounds(148, 322, 120, 33);
 		panel_1.add(btnAnnuler);
 		
-		btnFermer_1 = new JButton("Initailiser");
-		btnFermer_1.setIcon(new ImageIcon(Main.class.getResource("/images/icons8_Initiate_Money_Transfer_20px.png")));
-		btnFermer_1.setBounds(273, 322, 113, 33);
-		panel_1.add(btnFermer_1);
+		btnInitialiser = new JButton("Initailiser");
+		btnInitialiser.setIcon(new ImageIcon(Main.class.getResource("/images/icons8_Initiate_Money_Transfer_20px.png")));
+		btnInitialiser.setBounds(273, 322, 113, 33);
+		panel_1.add(btnInitialiser);
+		
+		
+		products = (ArrayList<Produit>) metier.getAll();
+		if(products.size()>0) {
+			RemplirListProduit();
+			listprod.setSelectedIndex(0);
+			position = 0;
+			remplirTextFields();
+		}
 	}
 
+	void RemplirListProduit() {
+		for(Produit p:products)
+			model.addElement(String.format("P%05d - %s", p.getCode(),p.getLibelle()));
+	}
+	
+	void remplirTextFields() {
+		txt_code.setText(String.valueOf(products.get(position).getCode()));
+		txt_lib.setText(products.get(position).getLibelle());
+		txt_achat.setText(String.valueOf(products.get(position).getPrix_achat()));
+		txt_vente.setText(String.valueOf(products.get(position).getPrix_vente()));
+		
+		if(products.get(position).getFamille().toLowerCase().equals("epicerie")) {
+			rdEpicerie.setSelected(true);
+		}else if(products.get(position).getFamille().toLowerCase().equals("fruit")) {
+			rdFruit.setSelected(true);
+		}else if(products.get(position).getFamille().toLowerCase().equals("eletromenager")) {
+			rdElectromenager.setSelected(true);
+		} else 
+			rdLegumes.setSelected(true); 
+	}
 }
